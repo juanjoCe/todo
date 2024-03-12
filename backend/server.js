@@ -1,20 +1,21 @@
 const express = require("express");
 const cors = require('cors');
 const routes = require("./routes");
-const mongoose = require("mongoose");
+const { Pool } = require("pg");
 
 const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://172.17.0.2:27017/todos";
-
+const PG_CONNECTION_STRING = process.env.PG_CONNECTION_STRING || "postgresql://your-db-user:your-db-password@localhost:5432/your-db-name";
 
 main().catch((err) => console.log(err));
 
 async function main() {
   try {
-    // Connect to the MongoDB container
-    await mongoose.connect(MONGODB_URI, {
-      useUnifiedTopology: true,
-      useNewUrlParser: true,
+    // Create a PostgreSQL connection pool
+    const pool = new Pool({
+      connectionString: PG_CONNECTION_STRING,
+      ssl: {
+        rejectUnauthorized: false, // Only use this for development, not recommended for production
+      },
     });
 
     const app = express();
@@ -25,7 +26,7 @@ async function main() {
     app.use("/api", routes);
 
     app.get('/', (req, res) => {
-      res.send('Hello, MongoDB container!');
+      res.send('Hello, PostgreSQL!');
     });
 
     // Listen on the dynamically assigned PORT
@@ -33,9 +34,49 @@ async function main() {
       console.log(`Server is listening on port: ${PORT}`);
     });
   } catch (error) {
-    console.error("Error connecting to MongoDB container:", error);
+    console.error("Error connecting to PostgreSQL:", error);
   }
 }
+
+
+// const express = require("express");
+// const cors = require('cors');
+// const routes = require("./routes");
+// const mongoose = require("mongoose");
+
+// const PORT = process.env.PORT || 3001;
+// const MONGODB_URI = process.env.MONGODB_URI || "mongodb://172.17.0.2:27017/todos";
+
+
+// main().catch((err) => console.log(err));
+
+// async function main() {
+//   try {
+//     // Connect to the MongoDB container
+//     await mongoose.connect(MONGODB_URI, {
+//       useUnifiedTopology: true,
+//       useNewUrlParser: true,
+//     });
+
+//     const app = express();
+//     app.use(cors());
+//     app.use(express.json());
+
+//     // Your routes setup
+//     app.use("/api", routes);
+
+//     app.get('/', (req, res) => {
+//       res.send('Hello, MongoDB container!');
+//     });
+
+//     // Listen on the dynamically assigned PORT
+//     app.listen(PORT, () => {
+//       console.log(`Server is listening on port: ${PORT}`);
+//     });
+//   } catch (error) {
+//     console.error("Error connecting to MongoDB container:", error);
+//   }
+// }
 
 // const express = require("express");
 // const cors = require('cors');
